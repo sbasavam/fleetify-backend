@@ -1,0 +1,29 @@
+{
+  "name": "fleetify-backend",
+  "version": "1.0.0",
+  "description": "The backend is built with Node.js and Express, providing RESTful APIs for company and driver management. It includes JWT-based authentication and RBAC, allowing admins full access and limiting other roles to read-only. Designed to work seamlessly with the Fleetify frontend.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sbasavam/fleetify-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sbasavam/fleetify-backend/issues"
+  },
+  "homepage": "https://github.com/sbasavam/fleetify-backend#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3"
+  }
+}
