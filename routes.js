@@ -7,15 +7,16 @@ const {
   getCompanyById,
   updateCompany,
   deleteCompany,
-} = require("./controller/companyController");
+} = require("./controller/Admin/companyController");
 const {
   AddDriver,
   getDrivers,
   getDriverById,
   updateDriver,
   deleteDriver
-} = require("./controller/driverController");
+} = require("./controller/Admin/driverController");
 const authMiddleware = require("./middlewares/authMiddleware");
+const { getStats }=require("./controller/Admin/dashBoard")
 
 // Public Routes (No authentication required)
 router.post("/auth/register", register);
@@ -23,6 +24,8 @@ router.post("/auth/login", login);
 
 // Protected Routes (Require valid JWT token)
 router.use(authMiddleware); // Applies to all routes below
+
+router.get('/counts', getStats);
 
 router.post("/companies", AddCompany);
 router.get("/companies", getCompanies);

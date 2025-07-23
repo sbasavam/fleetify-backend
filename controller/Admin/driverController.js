@@ -1,4 +1,4 @@
-const pool = require('../db');
+const pool = require('../../db');
 
 // Add Driver
 const AddDriver = async (req, res) => {
@@ -60,24 +60,81 @@ const AddDriver = async (req, res) => {
 // Get All Active Drivers
 const getDrivers = async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search ? req.query.search.toLowerCase() : '';
+
+    let baseQuery = `
+      SELECT 
         id, first_name, last_name, email, phone, date_of_birth,
         license_number, experience_years, address1, address2,
         city, state, zip_code, created_at, updated_at
-       FROM drivers 
-       WHERE isActive = 1
-       ORDER BY created_at DESC`
-    );
-    res.json(result.rows);
+      FROM drivers 
+      WHERE isActive = 1
+    `;
+
+    let countQuery = `SELECT COUNT(*) AS total_count FROM drivers WHERE isActive = 1`;
+
+    const values = [limit, offset];
+    let searchValue;
+    let whereClause = '';
+
+    if (search) {
+      whereClause = `
+        AND (
+          LOWER(first_name) LIKE $3 OR
+          LOWER(last_name) LIKE $3 OR
+          LOWER(email) LIKE $3 OR
+          LOWER(license_number) LIKE $3 OR
+          LOWER(city) LIKE $3
+        )
+      `;
+      searchValue = `%${search}%`;
+      values.push(searchValue);
+    }
+
+    const finalQuery = `${baseQuery} ${whereClause} ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
+    const driversResult = await pool.query(finalQuery, values);
+
+    // Rebuild count query with its own param placeholders
+    let countQueryValues = [];
+    if (search) {
+      countQuery += `
+        AND (
+          LOWER(first_name) LIKE $1 OR
+          LOWER(last_name) LIKE $1 OR
+          LOWER(email) LIKE $1 OR
+          LOWER(license_number) LIKE $1 OR
+          LOWER(city) LIKE $1
+        )
+      `;
+      countQueryValues = [searchValue];
+    }
+
+    const countResult = await pool.query(countQuery, countQueryValues);
+    const total = parseInt(countResult.rows[0].total_count);
+
+    res.json({
+      success: true,
+      data: driversResult.rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     console.error('Get drivers error:', err);
     res.status(500).json({
-      error: 'Failed to fetch drivers',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      success: false,
+      message: 'Failed to fetch drivers',
+      error: err.message,
     });
   }
 };
+
 
 // Get Driver by ID
 const getDriverById = async (req, res) => {

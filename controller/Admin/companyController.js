@@ -1,4 +1,4 @@
-const pool = require('../db');
+const pool = require('../../db');
 
 // Add company
 const AddCompany = async (req, res) => {
@@ -57,62 +57,83 @@ const AddCompany = async (req, res) => {
 // Get all companies
 const getCompanies = async (req, res) => {
   try {
-    // Get pagination parameters from query string (default to first page with 10 items)
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
+    const search = req.query.search ? req.query.search.toLowerCase() : '';
 
-    // Query to get paginated companies data
-    const companiesQuery = await pool.query(`
+    let baseQuery = `
       SELECT
-        id,
-        name,
-        established_date,
-        registration_number,
-        website,
-        address1,
-        address2,
-        city,
-        state,
-        zip_code,
-        contact_first_name,
-        contact_last_name,
-        contact_email,
-        contact_phone,
-        created_at,
-        updated_at
+        id, name, established_date, registration_number, website,
+        address1, address2, city, state, zip_code,
+        contact_first_name, contact_last_name, contact_email, contact_phone,
+        created_at, updated_at
       FROM companies
       WHERE isActive = 1
-      ORDER BY created_at DESC
-      LIMIT $1 OFFSET $2
-    `, [limit, offset]);
+    `;
 
-    // Query to get total count of active companies
-    const countQuery = await pool.query(`
-      SELECT COUNT(*) as total_count
-      FROM companies
-      WHERE isActive = 1
-    `);
+    let countQuery = `SELECT COUNT(*) as total_count FROM companies WHERE isActive = 1`;
+
+    let dataValues = [limit, offset];
+    let searchValue = null;
+    let whereClause = '';
+
+    if (search) {
+      whereClause = `
+        AND (
+          LOWER(name) LIKE $3 OR
+          LOWER(registration_number) LIKE $3 OR
+          LOWER(contact_email) LIKE $3 OR
+          LOWER(contact_phone) LIKE $3 OR
+          LOWER(city) LIKE $3
+        )
+      `;
+      searchValue = `%${search}%`;
+      dataValues.push(searchValue);
+    }
+
+    const finalQuery = `${baseQuery} ${whereClause} ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
+    const companiesQuery = await pool.query(finalQuery, dataValues);
+
+    // Reconstruct count query with its own $1 (don't use $3 here)
+    let countQueryValues = [];
+    let finalCountQuery = countQuery;
+
+    if (search) {
+      finalCountQuery += `
+        AND (
+          LOWER(name) LIKE $1 OR
+          LOWER(registration_number) LIKE $1 OR
+          LOWER(contact_email) LIKE $1 OR
+          LOWER(contact_phone) LIKE $1 OR
+          LOWER(city) LIKE $1
+        )
+      `;
+      countQueryValues.push(searchValue);
+    }
+
+    const countQueryResult = await pool.query(finalCountQuery, countQueryValues);
 
     res.status(200).json({
       success: true,
       data: companiesQuery.rows,
       pagination: {
-        total: parseInt(countQuery.rows[0].total_count),
+        total: parseInt(countQueryResult.rows[0].total_count),
         page,
         limit,
-        totalPages: Math.ceil(countQuery.rows[0].total_count / limit)
-      }
+        totalPages: Math.ceil(countQueryResult.rows[0].total_count / limit),
+      },
     });
   } catch (error) {
     console.error('Error fetching companies:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Internal server error',
-      error: error.message 
+      error: error.message,
     });
   }
 };
+
 
 // Get company by ID
 const getCompanyById = async (req, res) => {
