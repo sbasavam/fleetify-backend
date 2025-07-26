@@ -94,7 +94,7 @@ const getDrivers = async (req, res) => {
       values.push(searchValue);
     }
 
-    const finalQuery = `${baseQuery} ${whereClause} ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
+    const finalQuery = `${baseQuery} ${whereClause} ORDER BY updated_at DESC LIMIT $1 OFFSET $2`;
     const driversResult = await pool.query(finalQuery, values);
 
     // Rebuild count query with its own param placeholders
