@@ -6,14 +6,17 @@ const pool = require('./db');
 
 
 const app = express();
-
+const allowedOrigin = process.env.CORS_ORIGIN;
 
 // Middleware
 app.use(cors({
-  // origin: process.env.CORS_ORIGIN || '*',
-  origin:'*',
+  origin: allowedOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
+
+console.log(`🌐 Allowed CORS Origin: ${allowedOrigin}`);
+
+
 
 app.use(express.json({ limit: '10kb' }));
 

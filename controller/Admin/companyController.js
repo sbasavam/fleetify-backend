@@ -69,7 +69,7 @@ const getCompanies = async (req, res) => {
         contact_first_name, contact_last_name, contact_email, contact_phone,
         created_at, updated_at
       FROM companies
-      WHERE isActive = 1
+      WHERE isActive = 1 
     `;
 
     let countQuery = `SELECT COUNT(*) as total_count FROM companies WHERE isActive = 1`;
@@ -92,7 +92,7 @@ const getCompanies = async (req, res) => {
       dataValues.push(searchValue);
     }
 
-    const finalQuery = `${baseQuery} ${whereClause} ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
+    const finalQuery = `${baseQuery} ${whereClause} ORDER BY updated_at DESC LIMIT $1 OFFSET $2`;
     const companiesQuery = await pool.query(finalQuery, dataValues);
 
     // Reconstruct count query with its own $1 (don't use $3 here)
