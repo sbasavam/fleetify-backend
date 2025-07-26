@@ -25,16 +25,10 @@ const register = async (req, res) => {
       [name, email, hashedPassword, role_id]
     );
 
-    // 3. Generate JWT token
-    const token = jwt.sign(
-      { id: result.rows[0].id, role_id: result.rows[0].role_id },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
-
+    // 3. Respond with created user info (without token)
     res.status(201).json({
-      user: result.rows[0],
-      token
+      message: 'User registered successfully',
+      user: result.rows[0]
     });
 
   } catch (err) {
@@ -45,6 +39,7 @@ const register = async (req, res) => {
     });
   }
 };
+
 
 
 const login = async (req, res) => {

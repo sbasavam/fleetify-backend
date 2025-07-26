@@ -185,59 +185,150 @@ const getCompanyById = async (req, res) => {
 };
 
 
+// const updateCompany = async (req, res) => {
+//   try {
+//     const { id } = req.params;
 
+//     // Fetch existing company
+//     const existing = await pool.query(
+//       `SELECT * FROM companies WHERE id = $1 AND isActive = 1`,
+//       [id]
+//     );
+
+//     if (existing.rows.length === 0) {
+//       return res.status(404).json({ error: 'Company not found' });
+//     }
+
+//     const current = existing.rows[0];
+
+//     // Extract request body and fallback to current values if not provided
+//     const {
+//       name = current.name,
+//       established_date = current.established_date,
+//       registration_number = current.registration_number,
+//       website = current.website,
+//       address1 = current.address1,
+//       address2 = current.address2,
+//       city = current.city,
+//       state = current.state,
+//       zip_code = current.zip_code
+//     } = req.body;
+
+//     // Update query
+//     const result = await pool.query(
+//       `UPDATE companies SET
+//         name = $1,
+//         established_date = $2,
+//         registration_number = $3,
+//         website = $4,
+//         address1 = $5,
+//         address2 = $6,
+//         city = $7,
+//         state = $8,
+//         zip_code = $9,
+//         updated_at = NOW()
+//       WHERE id = $10 AND isActive = 1
+//       RETURNING *`,
+//       [
+//         name,
+//         established_date,
+//         registration_number,
+//         website,
+//         address1,
+//         address2,
+//         city,
+//         state,
+//         zip_code,
+//         id
+//       ]
+//     );
+
+//     res.json(result.rows[0]);
+
+//   } catch (err) {
+//     console.error('Update company error:', err);
+//     res.status(500).json({
+//       error: 'Company update failed',
+//       details: process.env.NODE_ENV === 'development' ? err.message : undefined
+//     });
+//   }
+// };
+
+
+
+// Delete company
 const updateCompany = async (req, res) => {
   try {
     const { id } = req.params;
-    const fields = [
-      "name",
-      "established_date",
-      "registration_number",
-      "website",
-      "address1",
-      "address2",
-      "city",
-      "state",
-      "zip_code",
-      "contact_first_name",
-      "contact_last_name",
-      "contact_email",
-      "contact_phone"
-    ];
 
-    const updates = [];
-    const values = [];
-    let index = 1;
+    // Fetch existing company
+    const existing = await pool.query(
+      `SELECT * FROM companies WHERE id = $1 AND isActive = 1`,
+      [id]
+    );
 
-    // Dynamically add only provided fields
-    for (const field of fields) {
-      if (req.body[field] !== undefined) {
-        updates.push(`${field} = $${index}`);
-        values.push(req.body[field]);
-        index++;
-      }
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'Company not found' });
     }
 
-    // Always update timestamp
-    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    const current = existing.rows[0];
 
-    // Add WHERE condition
-    values.push(id);         // $index
-    values.push(req.user.id); // $index + 1
+    // Extract request body and fallback to current values if not provided
+    const {
+      name = current.name,
+      established_date = current.established_date,
+      registration_number = current.registration_number,
+      website = current.website,
+      address1 = current.address1,
+      address2 = current.address2,
+      city = current.city,
+      state = current.state,
+      zip_code = current.zip_code,
+      contact_first_name = current.contact_first_name,
+      contact_last_name = current.contact_last_name,
+      contact_email = current.contact_email,
+      contact_phone = current.contact_phone
+    } = req.body;
 
-    const query = `
-      UPDATE companies SET
-        ${updates.join(', ')}
-      WHERE id = $${index} AND user_id = $${index + 1}
-      RETURNING *`;
-
-    const result = await pool.query(query, values);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Company not found or unauthorized' });
-    }
+    // Update query
+    const result = await pool.query(
+      `UPDATE companies SET
+        name = $1,
+        established_date = $2,
+        registration_number = $3,
+        website = $4,
+        address1 = $5,
+        address2 = $6,
+        city = $7,
+        state = $8,
+        zip_code = $9,
+        contact_first_name = $10,
+        contact_last_name = $11,
+        contact_email = $12,
+        contact_phone = $13,
+        updated_at = NOW()
+      WHERE id = $14 AND isActive = 1
+      RETURNING *`,
+      [
+        name,
+        established_date,
+        registration_number,
+        website,
+        address1,
+        address2,
+        city,
+        state,
+        zip_code,
+        contact_first_name,
+        contact_last_name,
+        contact_email,
+        contact_phone,
+        id
+      ]
+    );
 
     res.json(result.rows[0]);
+
   } catch (err) {
     console.error('Update company error:', err);
     res.status(500).json({
@@ -248,7 +339,7 @@ const updateCompany = async (req, res) => {
 };
 
 
-// Delete company
+
 
 const deleteCompany = async (req, res) => {
   const companyId = req.params.id;
