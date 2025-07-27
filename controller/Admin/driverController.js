@@ -67,11 +67,11 @@ const getDrivers = async (req, res) => {
 
     let baseQuery = `
       SELECT 
-        id, first_name, last_name, email, phone, date_of_birth,
-        license_number, experience_years, address1, address2,
-        city, state, zip_code, created_at, updated_at
+        id, first_name, last_name, email, phone,
+        license_number, experience_years,
+        city
       FROM drivers 
-      WHERE isActive = 1
+      WHERE isActive = 1 
     `;
 
     let countQuery = `SELECT COUNT(*) AS total_count FROM drivers WHERE isActive = 1`;
@@ -143,7 +143,7 @@ const getDriverById = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT 
-        id, first_name, last_name, email, phone, date_of_birth,
+        id, first_name, last_name, email, phone,  TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth,
         license_number, experience_years, address1, address2,
         city, state, zip_code, created_at, updated_at
        FROM drivers 

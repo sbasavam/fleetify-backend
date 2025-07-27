@@ -64,10 +64,7 @@ const getCompanies = async (req, res) => {
 
     let baseQuery = `
       SELECT
-        id, name, established_date, registration_number, website,
-        address1, address2, city, state, zip_code,
-        contact_first_name, contact_last_name, contact_email, contact_phone,
-        created_at, updated_at
+        id, name,registration_number,contact_email,contact_phone,city,website,address1
       FROM companies
       WHERE isActive = 1 
     `;
@@ -144,7 +141,7 @@ const getCompanyById = async (req, res) => {
       SELECT 
         id,
         name,
-        established_date,
+        TO_CHAR(established_date, 'YYYY-MM-DD') AS established_date,
         registration_number,
         website,
         address1,
